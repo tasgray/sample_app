@@ -51,10 +51,25 @@ describe "UserPages" do
   end
 
   describe "signup page" do
-    before { visit signup_path }
 
-    it { should have_selector('h1',     text: 'Sign up') }
-    it { should have_selector('title',  text: full_title('Sign up')) }
+    describe "when not signed in" do
+      before { visit signup_path }
+
+      it { should have_selector('h1',     text: 'Sign up') }
+      it { should have_selector('title',  text: full_title('Sign up')) }
+    end
+
+    describe "when signed in as a user" do
+      let(:user) { FactoryGirl.create(:user) }
+      
+      before do
+        sign_in user
+        get new_user_path 
+      end
+
+      specify { response.should redirect_to(root_url) }
+
+    end
   end
 
   describe "profile page" do
@@ -90,7 +105,7 @@ describe "UserPages" do
   			fill_in "Name", 			with: "Example User"
   			fill_in "Email", 			with: "example@example.com"
   			fill_in "Password", 		with: "foobar"
-  			fill_in "Confirmation", 	with: "foobar"
+  			fill_in "Confirm Password", 	with: "foobar"
   		end
 
   		it "should create a user" do
@@ -150,6 +165,22 @@ describe "UserPages" do
       end
 
     end
+  end
+
+  describe "delete user" do
+    
+    let(:admin) { FactoryGirl.create(:admin) }
+
+    before { sign_in admin }
+    
+    it "it should not be able to delete itself" do
+      expect { delete user_path(admin) }.to_not change(User, :count)
+    end
+
+
+    # sign in with admin user
+    # call destroy on user controller with that user's id
+    # verify that the user still exists
   end
 end
 

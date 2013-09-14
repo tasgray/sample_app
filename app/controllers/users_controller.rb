@@ -1,14 +1,16 @@
 class UsersController < ApplicationController
-  before_filter :signed_in_user,  only: [:index, :edit, :update, :destroy]
-  before_filter :correct_user,    only: [:edit, :update]
-  before_filter :admin_user,      only: :destroy
+  include SessionsHelper
+  before_filter :signed_in_user,      only: [:index, :edit, :update, :destroy]
+  before_filter :correct_user,        only: [:edit, :update]
+  before_filter :admin_user,          only: :destroy
+  before_filter :not_signed_in_user,  only: [:create, :new]
 
   def show
   	@user = User.find(params[:id])
   end
 
   def new
-  	@user = User.new
+    @user = User.new
   end
 
   def create
@@ -40,12 +42,23 @@ class UsersController < ApplicationController
   end
 
   def destroy
-    User.find(params[:id]).destroy
-    flash[:success] = "User destroyed."
+    @user = User.find(params[:id])
+
+    if current_user?(@user)
+      flash[:error] = "You cannot delete yourself!"
+    else
+      User.find(params[:id]).destroy
+      flash[:success] = "User destroyed."
+    end
+    
     redirect_to users_url
   end
 
   private 
+    def not_signed_in_user
+      # redirect the user to root url unless not signed
+      redirect_to root_url unless !signed_in?
+    end
 
     def signed_in_user
       unless signed_in?
