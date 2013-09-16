@@ -20,6 +20,18 @@ module SessionsHelper
 	def current_user?(user)
 		user == current_user
 	end
+    
+    def not_signed_in_user
+      # redirect the user to root url unless not signed
+      redirect_to root_url unless !signed_in?
+    end
+
+    def signed_in_user
+      unless signed_in?
+        store_location
+        redirect_to signin_url, notice: "Please sign in." unless signed_in?
+      end
+    end
 
 	def sign_out
 		self.current_user = nil
